@@ -12,3 +12,4 @@ experiments/results/
 runs/
 .agent-artifacts/
 node_modules/
+docs/proposal/
