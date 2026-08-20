@@ -1,0 +1,8 @@
+name: smoke-stale-read
+task:
+  kind: booking
+fault:
+  fault_type: stale_read
+  target_tool: list_customer_appointments
+  trigger_on_call: 2
+  seed: 3

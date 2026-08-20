@@ -1,0 +1,8 @@
+name: smoke-pre-execution-timeout
+task:
+  kind: booking
+fault:
+  fault_type: pre_execution_timeout
+  target_tool: hold_slot
+  trigger_on_call: 1
+  seed: 1

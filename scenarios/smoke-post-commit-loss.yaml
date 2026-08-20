@@ -1,0 +1,8 @@
+name: smoke-post-commit-loss
+task:
+  kind: booking
+fault:
+  fault_type: post_commit_response_loss
+  target_tool: create_appointment
+  trigger_on_call: 1
+  seed: 2

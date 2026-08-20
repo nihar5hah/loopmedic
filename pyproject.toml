@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "loopmedic"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+  "openai-agents",
+  "mcp",
+  "pydantic",
+  "pyyaml",
+  "pytest",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["loopmedic"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

@@ -1,0 +1,8 @@
+name: smoke-transient-error
+task:
+  kind: booking
+fault:
+  fault_type: transient_error
+  target_tool: hold_slot
+  trigger_on_call: 1
+  seed: 4
