@@ -17,6 +17,7 @@ from loopmedic.core.trace_store import TraceStore
 from loopmedic.environment import service as domain
 from loopmedic.environment.service import current_step
 from loopmedic.facade.faults import (
+    WRITE_ENTITY,
     FaultInjector,
     PassThrough,
     ReplaceAfterExecute,
@@ -32,14 +33,6 @@ from loopmedic.facade.policy import (
 )
 from loopmedic.runner.agent import BookingContext
 from loopmedic.runner.config import ToolBudgetExceeded
-
-WRITE_ENTITY: dict[str, tuple[str, ...]] = {
-    "hold_slot": ("customer_id", "slot_id"),
-    "release_hold": ("hold_id",),
-    "create_appointment": ("customer_id", "slot_id"),
-    "cancel_appointment": ("appointment_id",),
-    "send_confirmation": ("appointment_id",),
-}
 
 
 @dataclass

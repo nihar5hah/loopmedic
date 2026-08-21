@@ -3,11 +3,14 @@ from __future__ import annotations
 import json
 import sqlite3
 import uuid
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
 from loopmedic.core.events import DomainSnapshot, EventSource, EventType, TraceEvent
 from loopmedic.evaluation.tasks import TaskSpec
+
+EventListener = Callable[[TraceEvent], None]
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS runs (
@@ -72,6 +75,10 @@ class TraceStore:
         self.conn.row_factory = sqlite3.Row
         self.conn.executescript(SCHEMA)
         self.conn.commit()
+        self._listeners: list[EventListener] = []
+
+    def add_listener(self, listener: EventListener) -> None:
+        self._listeners.append(listener)
 
     def close(self) -> None:
         self.conn.close()
@@ -169,6 +176,13 @@ class TraceStore:
                 ),
             )
         self.conn.commit()
+        for listener in self._listeners:
+            try:
+                listener(event)
+            except Exception:
+                # Listeners (detectors) are observe-only: a bug there
+                # must not fail the run or hide the persisted event.
+                continue
         return event
 
     def emit(
@@ -231,6 +245,51 @@ class TraceStore:
         ).fetchall()
         return [
             DomainSnapshot.model_validate_json(row["snapshot_json"])
+            for row in rows
+        ]
+
+    def record_detector(
+        self,
+        run_id: str,
+        event_id: str | None,
+        detector: str,
+        *,
+        fired: bool = True,
+        evidence: dict[str, Any] | None = None,
+    ) -> None:
+        self.conn.execute(
+            """
+            INSERT INTO detector_outputs (
+              run_id, event_id, detector, fired, evidence_json
+            ) VALUES (?, ?, ?, ?, ?)
+            """,
+            (
+                run_id,
+                event_id,
+                detector,
+                int(fired),
+                json.dumps(evidence or {}, default=str, ensure_ascii=True),
+            ),
+        )
+        self.conn.commit()
+
+    def list_detector_outputs(self, run_id: str) -> list[dict[str, Any]]:
+        rows = self.conn.execute(
+            """
+            SELECT event_id, detector, fired, evidence_json
+            FROM detector_outputs
+            WHERE run_id = ?
+            ORDER BY id ASC
+            """,
+            (run_id,),
+        ).fetchall()
+        return [
+            {
+                "event_id": row["event_id"],
+                "detector": row["detector"],
+                "fired": bool(row["fired"]),
+                "evidence": _load_json(row["evidence_json"]) or {},
+            }
             for row in rows
         ]
 

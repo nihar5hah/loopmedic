@@ -33,6 +33,13 @@ WRITE_TOOLS = frozenset(
         "send_confirmation",
     }
 )
+WRITE_ENTITY: dict[str, tuple[str, ...]] = {
+    "hold_slot": ("customer_id", "slot_id"),
+    "release_hold": ("hold_id",),
+    "create_appointment": ("customer_id", "slot_id"),
+    "cancel_appointment": ("appointment_id",),
+    "send_confirmation": ("appointment_id",),
+}
 ALL_TOOLS = READ_TOOLS | WRITE_TOOLS
 
 TIMEOUT_CODE = "timeout"

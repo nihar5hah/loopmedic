@@ -317,6 +317,25 @@ row marked SUCCEEDED.
 sequences (fire and no-fire cases); a real faulted run shows unknown-commit
 evidence in its trace. No interventions yet — detectors observe only.
 
+**Results:**
+- Detectors are pure checks over rolling `FeatureState`, persisted only when
+  they fire into `detector_outputs`. Wired via `TraceStore` listeners from
+  `run_task`; they do not read `injected_fault`. Listener and detector-check
+  exceptions are swallowed so observe-only code cannot fail a run;
+  persistence failures are logged and also fail-open.
+- Defaults (Phase 9 may retune): consecutive repetition ≥ 2; same-error
+  streak ≥ 2 with unchanged hash and signature; stagnation **N=5** (N=3
+  would fire on a clean reschedule's opening reads); budget at **≥ 0.8** of
+  the 15-call cap. Token cap is not locked — budget is tool-call fraction.
+- Unknown-commit uses the ledger: timeout on a write whose fingerprint is
+  already SUCCEEDED (proactive), or a later matching write proposal
+  (reactive). Pre-execution timeout (no ledger row) does not fire.
+- Premature completion evaluates required invariants at
+  `final_output_proposed`. Observe only — the run still finishes.
+- Scripted Demo-2 (`smoke-post-commit-loss.yaml`) records both proactive
+  and reactive `unknown_commit` rows; evidence has no `injected_fault`.
+- Unit/scripted tests: **83 passed**.
+
 ---
 
 ## Phase 7 — Recovery controller (Weeks 8–9)

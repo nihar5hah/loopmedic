@@ -9,6 +9,7 @@ from pathlib import Path
 from agents import MaxTurnsExceeded, Model, RunConfig, Runner, ToolExecutionConfig
 from agents.mcp import MCPServerStreamableHttp
 
+from loopmedic.core.detectors import attach_detectors
 from loopmedic.core.state_hash import hash_snapshot, snapshot_world
 from loopmedic.core.trace_store import TraceStore
 from loopmedic.environment.seed import write_pristine_db
@@ -113,6 +114,7 @@ def run_task(
     write_pristine_db(db_path, seed=task.scenario_seed)
     conn = connect(db_path)
     store = TraceStore(trace_path)
+    attach_detectors(store, conn, task=task, cap=cap)
     context = BookingContext(conn=conn, run_id=run_id, cap=cap)
     hooks = TraceHooks(store, record_tools=False)
     error: str | None = None
